@@ -13,17 +13,38 @@
         html, body {
             margin: 0;
             padding: 0;
-            min-height: 100%;
+            height: 100%;
             width: 100%;
         }
 
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            /* 加深后的温暖粉米色背景 */
-            background: linear-gradient(135deg, #fceae2 0%, #f7dcd0 50%, #f2cfbf 100%) no-repeat fixed;
-            background-size: cover;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
             overflow-x: hidden;
             position: relative;
+            background-color: #fceae2; /* 兜底色 */
+        }
+
+        /* 修复移动端背景固定问题 */
+        .bg-fixed-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: linear-gradient(135deg, #fceae2 0%, #f7dcd0 50%, #f2cfbf 100%) no-repeat;
+            background-size: cover;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 2.5rem;
+                top: 1.5rem;
+            }
         }
 
         /* 网站标题个性化：粉色 + 手写感字体 + 动态效果 */
@@ -432,6 +453,50 @@
             box-shadow: 0 15px 30px rgba(0,0,0,0.2);
         }
 
+        /* 好友动态样式 */
+        .feed-item {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .feed-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 15px 40px rgba(251, 113, 133, 0.1);
+        }
+
+        .feed-tag {
+            font-size: 0.7rem;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tag-mood { background: #e0f2fe; color: #0ea5e9; }
+        .tag-story { background: #fef2f2; color: #f43f5e; }
+        .tag-confession { background: #fefce8; color: #ca8a04; }
+
+        .friend-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(251, 113, 133, 0.05);
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .friend-item:hover {
+            background: rgba(251, 113, 133, 0.1);
+        }
+
         .pin {
             width: 15px;
             height: 15px;
@@ -564,6 +629,9 @@
     </style>
 </head>
 <body class="text-gray-800">
+    <!-- 固定背景层，解决移动端兼容性 -->
+    <div class="bg-fixed-layer"></div>
+    
     <!-- 云朵背景层 -->
     <div class="cloud-container" id="cloud-container"></div>
 
@@ -584,6 +652,15 @@
             <div class="menu-item" onclick="openPostModal('匿名告白')">
                 <i data-lucide="mail" style="width: 18px; height: 18px;"></i>
                 匿名告白
+            </div>
+            <div class="menu-divider my-2 border-t border-rose-100/50"></div>
+            <div class="menu-item" onclick="openFriendsModal()">
+                <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                我的好友
+            </div>
+            <div class="menu-item" onclick="switchView('friends_feed')">
+                <i data-lucide="compass" style="width: 18px; height: 18px;"></i>
+                好友动态
             </div>
         </div>
     </div>
@@ -615,6 +692,18 @@
         <div class="confession-board" id="confession-board"></div>
     </main>
 
+    <!-- 好友动态容器 -->
+    <main id="friends-feed-container" class="view-container view-hidden overflow-y-auto">
+        <div class="max-w-2xl mx-auto py-32 px-6">
+            <h2 class="text-3xl font-black text-rose-400 mb-8 flex items-center gap-3">
+                <i data-lucide="compass" class="w-8 h-8"></i> 好友动态
+            </h2>
+            <div id="friends-feed-list" class="space-y-8">
+                <!-- 动态内容将由 JS 生成 -->
+            </div>
+        </div>
+    </main>
+
     <!-- 底部操作栏 -->
     <div class="bottom-nav">
         <button id="main-share-btn" onclick="openPostModal('分享心情')" class="share-btn">
@@ -634,8 +723,29 @@
                 <div class="profile-avatar">
                     <i data-lucide="smile" style="width: 50px; height: 50px; stroke-width: 1.5px;"></i>
                 </div>
-                <h2 id="profile-name" class="text-2xl font-black text-gray-700 mb-1">治愈系小精灵</h2>
-                <p id="profile-id" class="text-rose-300 font-bold mb-6">ID: Thinking_9527</p>
+                
+                <div id="profile-display-area" class="text-center w-full">
+                    <h2 id="profile-name" class="text-2xl font-black text-gray-700 mb-1">治愈系小精灵</h2>
+                    <p id="profile-id" class="text-rose-300 font-bold mb-6">ID: Thinking_9527</p>
+                    <button onclick="toggleProfileEdit(true)" class="text-xs font-bold text-rose-300 hover:text-rose-400 transition-colors mb-4 flex items-center justify-center gap-1 mx-auto">
+                        <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i> 修改资料
+                    </button>
+                </div>
+
+                <div id="profile-edit-area" class="hidden w-full space-y-4 mb-6">
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-2">用户名称</label>
+                        <input type="text" id="edit-name-input" class="w-full px-5 py-3 rounded-2xl bg-rose-50/50 border-none focus:ring-2 focus:ring-rose-200 text-gray-600 font-bold">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-2">用户 ID (TK-XXXXXX)</label>
+                        <input type="text" id="edit-id-input" class="w-full px-5 py-3 rounded-2xl bg-rose-50/50 border-none focus:ring-2 focus:ring-rose-200 text-gray-600 font-bold">
+                    </div>
+                    <div class="flex gap-2 pt-2">
+                        <button onclick="toggleProfileEdit(false)" class="flex-1 py-3 rounded-2xl font-bold text-gray-400 hover:bg-gray-100 transition-all text-sm">取消</button>
+                        <button onclick="saveProfileChanges()" class="flex-1 bg-rose-300 hover:bg-rose-400 text-white py-3 rounded-2xl font-bold shadow-md transition-all text-sm">保存修改</button>
+                    </div>
+                </div>
                 
                 <div class="stats-grid">
                     <div class="stat-item">
@@ -694,6 +804,31 @@
         </div>
     </div>
 
+    <!-- 好友管理弹窗 -->
+    <div id="friends-modal" class="fixed inset-0 z-[140] hidden flex items-center justify-center p-4 bg-rose-500/5 backdrop-blur-md">
+        <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-rose-400">👥 我的好友</h2>
+                <button id="close-friends-modal" class="text-gray-300 hover:text-rose-400 transition-colors">
+                    <i data-lucide="x" style="stroke-width: 3px;"></i>
+                </button>
+            </div>
+            
+            <!-- 搜索好友 -->
+            <div class="flex gap-2 mb-8">
+                <input type="text" id="friend-search-input" placeholder="输入好友 ID (如: TK-XXXXXX)" 
+                    class="flex-1 px-5 py-3 rounded-2xl bg-rose-50/50 border-none focus:ring-2 focus:ring-rose-200 text-gray-600 font-bold placeholder-rose-200">
+                <button id="add-friend-btn" class="bg-rose-300 hover:bg-rose-400 text-white p-3 rounded-2xl transition-all shadow-md">
+                    <i data-lucide="user-plus"></i>
+                </button>
+            </div>
+
+            <div id="friends-list" class="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- 好友列表将由 JS 生成 -->
+            </div>
+        </div>
+    </div>
+
     <!-- 提交心情弹窗 -->
     <div id="modal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 bg-sky-500/10 backdrop-blur-md">
         <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
@@ -737,37 +872,94 @@
         const bubbleContainer = document.getElementById('bubble-container');
         const storyContainer = document.getElementById('story-container');
         const confessionContainer = document.getElementById('confession-container');
+        const friendsFeedContainer = document.getElementById('friends-feed-container');
         const storyList = document.getElementById('story-list');
         const confessionBoard = document.getElementById('confession-board');
+        const friendsFeedList = document.getElementById('friends-feed-list');
         const cloudContainer = document.getElementById('cloud-container');
         const modal = document.getElementById('modal');
         const replyModal = document.getElementById('reply-modal');
         const messageModal = document.getElementById('message-modal');
         const profileModal = document.getElementById('profile-modal');
         const thanksModal = document.getElementById('thanks-modal');
+        const friendsModal = document.getElementById('friends-modal');
         const originalThoughtDiv = document.getElementById('original-thought');
         const thoughtInput = document.getElementById('thought-input');
         const replyInput = document.getElementById('reply-input');
         const thanksInput = document.getElementById('thanks-input');
         const messageList = document.getElementById('message-list');
+        const friendsList = document.getElementById('friends-list');
 
-        let currentView = 'mood'; // 'mood', 'story', 'confession'
+        let currentView = 'mood'; // 'mood', 'story', 'confession', 'friends_feed'
         let currentPostType = '分享心情';
         let currentBubbleIndex = null;
         let currentReplyIndex = null;
-        let thoughts = JSON.parse(localStorage.getItem('thinking_more_thoughts') || '[]');
-        let replies = JSON.parse(localStorage.getItem('thinking_more_replies') || '[]');
+        let thoughts = [];
+        let replies = [];
         let userStats = JSON.parse(localStorage.getItem('thinking_more_stats') || '{"bubbles": 0, "replies": 0}');
         let userProfile = JSON.parse(localStorage.getItem('thinking_more_profile') || 'null');
+        let friends = JSON.parse(localStorage.getItem('thinking_more_friends') || '[]');
+        
+        // 为了让泡泡回来并打样，我们确保这次加载能看到所有内容
+        // 之后用户再次“戳破”时依然会正常记录
+        let processedThoughts = [];
+        localStorage.setItem('thinking_more_processed', JSON.stringify([]));
+
+        // 全局同步数据加载
+        async function loadData() {
+            try {
+                const response = await fetch('/api/data');
+                const data = await response.json();
+                thoughts = data.thoughts || [];
+                replies = data.replies || [];
+                
+                // 渲染当前视图
+                if (currentView === 'mood') renderBubbles();
+                if (currentView === 'story') renderStories();
+                if (currentView === 'confession') renderConfessions();
+                if (currentView === 'friends_feed') renderFriendsFeed();
+                
+                updateNotificationDot();
+                updateStats();
+            } catch (error) {
+                console.error('加载数据失败:', error);
+            }
+        }
+
+        // 提交数据到服务器
+        async function syncData(endpoint, item) {
+            try {
+                await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(item)
+                });
+                await loadData(); // 重新加载以获取最新状态
+            } catch (error) {
+                console.error('同步数据失败:', error);
+            }
+        }
 
         // 初始化用户信息
         function initUserProfile() {
             if (!userProfile) {
-                const adjectives = ['治愈系', '温柔的', '闪闪发光的', '爱笑的', '静谧的', '勇敢的', '自由的', '梦幻的'];
-                const nouns = ['小精灵', '守护者', '旅行者', '记录员', '观察家', '艺术家', '追光者', '漫游者'];
+                const adjectives = [
+                    '治愈系', '温柔的', '闪闪发光的', '爱笑的', '静谧的', '勇敢的', '自由的', '梦幻的',
+                    '微醺的', '清新的', '热烈的', '恬静的', '明亮的', '婉约的', '率真的', '睿智的',
+                    '深情的', '洒脱的', '灵动的', '纯粹的', '坚毅的', '淡然的', '热衷的', '专注的'
+                ];
+                const nouns = [
+                    '小精灵', '守护者', '旅行者', '记录员', '观察家', '艺术家', '追光者', '漫游者',
+                    '收藏家', '独白者', '捕梦人', '夜行人', '倾听者', '见证人', '书写者', '创作者',
+                    '探险家', '思想家', '拾荒者', '点灯人', '破风手', '领航员', '摆渡人', '修行者'
+                ];
                 const randomName = adjectives[Math.floor(Math.random() * adjectives.length)] + 
                                   nouns[Math.floor(Math.random() * nouns.length)];
-                const randomId = 'Thinking_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                
+                // 使用时间戳+随机数生成更唯一的 8 位 ID
+                const timestamp = Date.now().toString(36).slice(-4).toUpperCase();
+                const randomStr = Math.random().toString(36).substr(2, 4).toUpperCase();
+                const randomId = 'TK-' + timestamp + randomStr;
                 
                 userProfile = {
                     name: randomName,
@@ -778,18 +970,58 @@
             document.getElementById('profile-name').textContent = userProfile.name;
             document.getElementById('profile-id').textContent = 'ID: ' + userProfile.id;
         }
+        // 修改个人资料逻辑
+        function toggleProfileEdit(show) {
+            const displayArea = document.getElementById('profile-display-area');
+            const editArea = document.getElementById('profile-edit-area');
+            if (show) {
+                document.getElementById('edit-name-input').value = userProfile.name;
+                document.getElementById('edit-id-input').value = userProfile.id;
+                displayArea.classList.add('hidden');
+                editArea.classList.remove('hidden');
+            } else {
+                displayArea.classList.remove('hidden');
+                editArea.classList.add('hidden');
+            }
+        }
+
+        function saveProfileChanges() {
+            const newName = document.getElementById('edit-name-input').value.trim();
+            const newId = document.getElementById('edit-id-input').value.trim();
+            
+            if (newName && newId) {
+                userProfile.name = newName;
+                userProfile.id = newId;
+                localStorage.setItem('thinking_more_profile', JSON.stringify(userProfile));
+                
+                document.getElementById('profile-name').textContent = userProfile.name;
+                document.getElementById('profile-id').textContent = 'ID: ' + userProfile.id;
+                
+                toggleProfileEdit(false);
+                alert('个人资料已更新 ✨');
+            } else {
+                alert('名称和 ID 不能为空哦');
+            }
+        }
+
         initUserProfile();
+        loadData();
+        
+        // 每 10 秒自动轮询一次数据，实现准实时同步
+        setInterval(loadData, 10000);
 
         // 切换视图逻辑
         function switchView(view) {
             currentView = view;
             const shareBtn = document.getElementById('main-share-btn');
-            [bubbleContainer, storyContainer, confessionContainer].forEach(c => c.classList.add('view-hidden'));
+
+            [bubbleContainer, storyContainer, confessionContainer, friendsFeedContainer].forEach(c => c.classList.add('view-hidden'));
             
             if (view === 'mood') {
                 bubbleContainer.classList.remove('view-hidden');
                 shareBtn.textContent = '分享你的心情';
                 shareBtn.onclick = () => openPostModal('分享心情');
+                renderBubbles();
             }
             if (view === 'story') {
                 storyContainer.classList.remove('view-hidden');
@@ -802,6 +1034,12 @@
                 shareBtn.textContent = '写下匿名告白';
                 shareBtn.onclick = () => openPostModal('匿名告白');
                 renderConfessions();
+            }
+            if (view === 'friends_feed') {
+                friendsFeedContainer.classList.remove('view-hidden');
+                shareBtn.textContent = '发布新动态';
+                shareBtn.onclick = () => openPostModal('分享心情');
+                renderFriendsFeed();
             }
         }
 
@@ -855,7 +1093,7 @@
         // 更新消息通知红点
         function updateNotificationDot() {
             const dot = document.querySelector('.notification-dot');
-            const hasUnread = replies.some(r => !r.isRead);
+            const hasUnread = replies.some(r => r.toUserId === userProfile.id && !r.isRead);
             dot.style.display = hasUnread ? 'block' : 'none';
         }
         updateNotificationDot();
@@ -864,7 +1102,10 @@
         // 渲染故事列表
         function renderStories() {
             storyList.innerHTML = '';
-            thoughts.filter(t => t.type === '分享故事').reverse().forEach(t => {
+            thoughts
+                .filter(t => t.type === '分享故事' && !processedThoughts.includes(`${t.userId}-${t.timestamp}`))
+                .reverse()
+                .forEach(t => {
                 const item = document.createElement('div');
                 item.className = 'story-item';
                 item.textContent = t.text;
@@ -879,7 +1120,9 @@
             const pinColors = ['#ff4d4d', '#fffa65', '#32ff7e', '#7d5fff', '#18dcff'];
             const noteStyles = ['note-ruled', 'note-grid'];
             
-            thoughts.filter(t => t.type === '匿名告白').forEach((t, i) => {
+            thoughts
+                .filter(t => t.type === '匿名告白' && !processedThoughts.includes(`${t.userId}-${t.timestamp}`))
+                .forEach((t, i) => {
                 const note = document.createElement('div');
                 const styleClass = noteStyles[Math.floor(Math.random() * noteStyles.length)];
                 note.className = `confession-note ${styleClass}`;
@@ -911,7 +1154,8 @@
 
         // 渲染消息列表
         function renderMessages() {
-            if (replies.length === 0) {
+            const myReplies = replies.filter(r => r.toUserId === userProfile.id);
+            if (myReplies.length === 0) {
                 messageList.innerHTML = `
                     <div class="p-6 bg-rose-50/50 rounded-3xl text-gray-500 text-center italic">
                         暂时还没有收到新的回应哦...
@@ -920,7 +1164,10 @@
             }
 
             // 先生成带索引的 HTML 数组，再反转显示，确保索引对应正确
-            const messageHTMLs = replies.map((reply, i) => `
+            const messageHTMLs = myReplies.map((reply) => {
+                // 在全局 replies 数组中找到该回复的真实索引，用于后续操作
+                const globalIndex = replies.findIndex(r => r.timestamp === reply.timestamp && r.replyText === reply.replyText);
+                return `
                 <div class="p-6 bg-rose-50/50 rounded-3xl space-y-3 relative group transition-all hover:bg-rose-50">
                     <div class="flex items-center gap-2 mb-2">
                         <div class="w-2 h-2 bg-rose-300 rounded-full"></div>
@@ -935,13 +1182,13 @@
                         </div>
                     ` : `
                         <div class="flex justify-end">
-                            <button onclick="openThanksModal(${i})" class="text-xs bg-rose-200 hover:bg-rose-300 text-white px-4 py-2 rounded-full transition-all font-bold">
+                            <button onclick="openThanksModal(${globalIndex})" class="text-xs bg-rose-200 hover:bg-rose-300 text-white px-4 py-2 rounded-full transition-all font-bold">
                                 答复/感谢
                             </button>
                         </div>
                     `}
                 </div>
-            `);
+            `});
             
             messageList.innerHTML = messageHTMLs.reverse().join('');
         }
@@ -954,12 +1201,12 @@
         };
 
         // 寄出感谢逻辑
-        document.getElementById('confirm-thanks').onclick = () => {
+        document.getElementById('confirm-thanks').onclick = async () => {
             const text = thanksInput.value.trim();
             if (text && currentReplyIndex !== null) {
-                replies[currentReplyIndex].thanksText = text;
-                localStorage.setItem('thinking_more_replies', JSON.stringify(replies));
-                renderMessages();
+                const updatedReply = { ...replies[currentReplyIndex], thanksText: text };
+                await syncData('/api/replies/update', updatedReply);
+                
                 thanksModal.classList.add('hidden');
                 
                 // 成功提示
@@ -974,11 +1221,13 @@
         document.getElementById('cancel-thanks').onclick = () => thanksModal.classList.add('hidden');
 
         // 消息弹窗逻辑
-        document.getElementById('open-messages').onclick = () => {
-            // 标记所有消息为已读
-            replies.forEach(r => r.isRead = true);
-            localStorage.setItem('thinking_more_replies', JSON.stringify(replies));
-            updateNotificationDot();
+        document.getElementById('open-messages').onclick = async () => {
+            // 标记所有属于当前用户的消息为已读并同步
+            const myReplies = replies.filter(r => r.toUserId === userProfile.id && !r.isRead);
+            for (const r of myReplies) {
+                const updatedReply = { ...r, isRead: true };
+                await syncData('/api/replies/update', updatedReply);
+            }
             
             renderMessages();
             messageModal.classList.remove('hidden');
@@ -1058,48 +1307,34 @@
         function renderBubbles() {
             bubbleContainer.innerHTML = '';
             thoughts.forEach((thought, index) => {
-                if (!thought.type || thought.type === '分享心情') {
+                const thoughtKey = `${thought.userId}-${thought.timestamp}`;
+                if ((!thought.type || thought.type === '分享心情') && !processedThoughts.includes(thoughtKey)) {
                     createBubble(thought, index);
                 }
             });
         }
 
-        if (thoughts.length === 0) {
-            thoughts = [
-                { text: "感觉生活偶尔也需要按一下暂停键。" },
-                { text: "今天的风吹得很温柔，像被世界拥抱了。" },
-                { text: "虽然还在迷茫，但脚步没有停下。" },
-                { text: "发现了一家超好吃的甜品店！" },
-                { text: "希望每一个善良的人都能被温柔以待。" }
-            ];
-            localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
-        }
-        // 初始化渲染
-        renderBubbles();
-        renderStories();
-        renderConfessions();
+        // 初始数据已由 loadData 处理
+        // 初始化渲染已由 loadData 处理
 
         // 提交逻辑
         document.getElementById('close-modal').onclick = () => modal.classList.add('hidden');
-        document.getElementById('submit-thought').onclick = () => {
+        document.getElementById('submit-thought').onclick = async () => {
             const text = thoughtInput.value.trim();
             if (text) {
                 const newThought = {
                     text,
                     type: currentPostType,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    userId: userProfile.id,
+                    userName: userProfile.name
                 };
-                thoughts.push(newThought);
-                localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
+                await syncData('/api/thoughts', newThought);
                 
-                // 更新个人统计：吹出的泡泡
+                // 更新个人统计：吹出的泡泡 (本地存储即可)
                 userStats.bubbles++;
                 localStorage.setItem('thinking_more_stats', JSON.stringify(userStats));
                 updateStats();
-
-                if (currentPostType === '分享心情') renderBubbles();
-                if (currentPostType === '分享故事') renderStories();
-                if (currentPostType === '匿名告白') renderConfessions();
                 
                 thoughtInput.value = '';
                 modal.classList.add('hidden');
@@ -1113,40 +1348,184 @@
 
         // 回复与实现逻辑
         document.getElementById('close-reply-modal').onclick = () => replyModal.classList.add('hidden');
-        document.getElementById('submit-reply').onclick = () => {
+        document.getElementById('submit-reply').onclick = async () => {
             const replyText = replyInput.value.trim();
             if (currentBubbleIndex !== null && replyText) {
                 const bubbleEl = document.getElementById(`bubble-${currentBubbleIndex}`);
-                const originalText = thoughts[currentBubbleIndex].text;
+                const targetThought = thoughts[currentBubbleIndex];
+                const originalText = targetThought.text;
+                const thoughtKey = `${targetThought.userId}-${targetThought.timestamp}`;
 
+                // 1. 立即关闭弹窗，不等待
+                replyModal.classList.add('hidden');
+                
+                // 2. 触发爆裂动画 (如果是泡泡)
                 if (bubbleEl) {
-                    // 1. 立即关闭弹窗，不等待
-                    replyModal.classList.add('hidden');
-                    
-                    // 2. 触发爆裂动画
                     bubbleEl.classList.add('popping');
-                    
-                    // 3. 动画完成后再处理数据
-                    setTimeout(() => {
-                        // 保存回应消息
-                        replies.push({
-                            originalText,
-                            replyText,
-                            timestamp: Date.now()
-                        });
-                        localStorage.setItem('thinking_more_replies', JSON.stringify(replies));
-                        updateNotificationDot();
-
-                        bubbleEl.remove();
-                        thoughts.splice(currentBubbleIndex, 1);
-                        localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
-                        
-                        replyInput.value = '';
-                        currentBubbleIndex = null;
-                    }, 400);
                 }
+                
+                // 3. 动画完成后再同步到服务器
+                setTimeout(async () => {
+                    // 发送回复
+                    await syncData('/api/replies', {
+                        originalText,
+                        replyText,
+                        timestamp: Date.now(),
+                        toUserId: targetThought.userId,
+                        fromUserId: userProfile.id,
+                        isRead: false
+                    });
+
+                    // 不再从服务器移除，而是标记为本地已处理
+                    processedThoughts.push(thoughtKey);
+                    localStorage.setItem('thinking_more_processed', JSON.stringify(processedThoughts));
+                    
+                    // 重新渲染当前视图以隐藏已处理的内容
+                    if (currentView === 'mood') renderBubbles();
+                    if (currentView === 'story') renderStories();
+                    if (currentView === 'confession') renderConfessions();
+                    if (currentView === 'friends_feed') renderFriendsFeed();
+                    
+                    replyInput.value = '';
+                    currentBubbleIndex = null;
+                }, 400);
             }
         };
+
+        // 好友管理逻辑
+        window.openFriendsModal = () => {
+            renderFriends();
+            friendsModal.classList.remove('hidden');
+        };
+
+        document.getElementById('close-friends-modal').onclick = () => friendsModal.classList.add('hidden');
+
+        function renderFriends() {
+            if (friends.length === 0) {
+                friendsList.innerHTML = `
+                    <div class="p-6 bg-rose-50/50 rounded-3xl text-gray-400 text-center italic text-sm">
+                        还没有好友，快去搜索 ID 添加吧！
+                    </div>`;
+                return;
+            }
+
+            friendsList.innerHTML = friends.map((friend, i) => `
+                <div class="friend-item group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-400">
+                            <i data-lucide="user" style="width: 20px; height: 20px;"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-gray-700">${friend.name}</div>
+                            <div class="text-[10px] text-rose-300 font-bold tracking-wider">${friend.id}</div>
+                        </div>
+                    </div>
+                    <button onclick="removeFriend(${i})" class="text-gray-300 hover:text-rose-400 transition-colors">
+                        <i data-lucide="user-minus" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        window.removeFriend = (index) => {
+            if (confirm(`确定要解除与 ${friends[index].name} 的好友关系吗？`)) {
+                friends.splice(index, 1);
+                localStorage.setItem('thinking_more_friends', JSON.stringify(friends));
+                renderFriends();
+                if (currentView === 'friends_feed') renderFriendsFeed();
+            }
+        };
+
+        document.getElementById('add-friend-btn').onclick = () => {
+            const searchInput = document.getElementById('friend-search-input');
+            const searchId = searchInput.value.trim().toUpperCase();
+            
+            if (!searchId) return;
+            if (searchId === userProfile.id) {
+                alert('不能添加自己为好友哦！');
+                return;
+            }
+            if (friends.some(f => f.id === searchId)) {
+                alert('该用户已经是你的好友了！');
+                return;
+            }
+
+            // 在所有帖子中查找该用户
+            const friendPost = thoughts.find(t => t.userId === searchId);
+            if (friendPost) {
+                const newFriend = {
+                    id: friendPost.userId,
+                    name: friendPost.userName
+                };
+                friends.push(newFriend);
+                localStorage.setItem('thinking_more_friends', JSON.stringify(friends));
+                searchInput.value = '';
+                renderFriends();
+                
+                // 成功提示
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[200] bg-white/95 backdrop-blur-md px-10 py-5 rounded-[2rem] shadow-2xl text-rose-400 font-bold animate-bounce border-none flex items-center gap-3';
+                toast.innerHTML = `<span>👥</span> 已成功添加好友：${newFriend.name}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            } else {
+                alert('未找到该 ID 的用户，请确保 ID 正确且对方发表过内容。');
+            }
+        };
+
+        // 渲染好友动态
+        function renderFriendsFeed() {
+            const friendIds = friends.map(f => f.id);
+            const feedPosts = thoughts
+                .filter(t => friendIds.includes(t.userId) && !processedThoughts.includes(`${t.userId}-${t.timestamp}`))
+                .reverse();
+
+            if (feedPosts.length === 0) {
+                friendsFeedList.innerHTML = `
+                    <div class="p-12 bg-white/50 backdrop-blur-md rounded-[2.5rem] text-center space-y-4">
+                        <div class="text-5xl">🔭</div>
+                        <div class="text-gray-400 font-bold">好友们最近很安静，还没有发表任何内容哦...</div>
+                    </div>`;
+                return;
+            }
+
+            const typeTags = {
+                '分享心情': 'tag-mood',
+                '分享故事': 'tag-story',
+                '匿名告白': 'tag-confession'
+            };
+
+            const typeIcons = {
+                '分享心情': 'heart',
+                '分享故事': 'book-open',
+                '匿名告白': 'mail'
+            };
+
+            friendsFeedList.innerHTML = feedPosts.map(post => `
+                <div class="feed-item space-y-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-400">
+                                <i data-lucide="user" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <div class="font-black text-gray-700">${post.userName}</div>
+                                <div class="text-[10px] text-gray-400 font-bold tracking-widest uppercase">${new Date(post.timestamp).toLocaleString()}</div>
+                            </div>
+                        </div>
+                        <div class="feed-tag ${typeTags[post.type] || 'tag-mood'} flex items-center gap-1">
+                            <i data-lucide="${typeIcons[post.type] || 'heart'}" class="w-3 h-3"></i>
+                            ${post.type || '分享心情'}
+                        </div>
+                    </div>
+                    <div class="text-gray-600 font-bold leading-relaxed text-lg">
+                        ${post.text}
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
 
         window.onresize = renderBubbles;
         window.onclick = (e) => {
@@ -1155,6 +1534,7 @@
             if (e.target === messageModal) messageModal.classList.add('hidden');
             if (e.target === profileModal) profileModal.classList.add('hidden');
             if (e.target === thanksModal) thanksModal.classList.add('hidden');
+            if (e.target === friendsModal) friendsModal.classList.add('hidden');
         };
     </script>
 </body>
