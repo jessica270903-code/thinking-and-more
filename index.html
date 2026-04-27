@@ -761,10 +761,10 @@
                 <!-- 新增：网站状态 -->
                 <div class="mt-8 pt-8 border-t border-rose-100/50 w-full space-y-6">
                     <div>
-                        <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Site Status</div>
+                        <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Sync Status</div>
                         <div class="flex items-center gap-3 bg-rose-50/50 p-4 rounded-2xl">
-                            <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-                            <span class="text-rose-300 font-bold text-xs">本地开发模式 (Localhost)</span>
+                            <div id="sync-status-dot" class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                            <span id="sync-status-text" class="text-rose-300 font-bold text-xs">检测同步服务器...</span>
                         </div>
                     </div>
                 </div>
@@ -894,7 +894,16 @@
         let currentPostType = '分享心情';
         let currentBubbleIndex = null;
         let currentReplyIndex = null;
-        let thoughts = [];
+        let thoughts = [
+            { text: "感觉生活偶尔也需要按一下暂停键，去吹吹晚风。", type: "分享心情", userId: "TK-SAMPLE01", userName: "治愈系小精灵", timestamp: 1714262400000 },
+            { text: "今天的云朵像棉花糖一样，世界真的很温柔。", type: "分享心情", userId: "TK-SAMPLE02", userName: "捕梦人", timestamp: 1714262300000 },
+            { text: "虽然还在迷茫，但只要在路上，总会看到光。", type: "分享心情", userId: "TK-SAMPLE03", userName: "追光者", timestamp: 1714262200000 },
+            { text: "那是高二的夏天，我们偷偷在天台看夕阳，那一刻我觉得时间停止了。现在回想起来，那种单纯的快乐再也没出现过，但它一直温暖着我。", type: "分享故事", userId: "TK-SAMPLE01", userName: "治愈系小精灵", timestamp: 1714262100000 },
+            { text: "第一次学骑自行车的时候，爸爸在后面扶着，他说别怕我在呢。当我终于学会回头看时，他正站在原地笑着挥手。那是关于成长最深刻的记忆。", type: "分享故事", userId: "TK-SAMPLE04", userName: "时光记录员", timestamp: 1714262050000 },
+            { text: "希望每一个善良的人都能被温柔以待，晚安世界。", type: "分享心情", userId: "TK-SAMPLE04", userName: "点灯人", timestamp: 1714262000000 },
+            { text: "其实我一直都很喜欢你，在每一个你看不到的瞬间。希望你永远开心，哪怕你的世界里没有我。", type: "匿名告白", userId: "TK-SAMPLE02", userName: "捕梦人", timestamp: 1714261900000 },
+            { text: "想和你一起去看凌晨四点的海，看第一缕阳光照亮你的侧脸。虽然只是个梦，但我不想醒来。", type: "匿名告白", userId: "TK-SAMPLE05", userName: "深情独白者", timestamp: 1714261850000 }
+        ];
         let replies = [];
         let userStats = JSON.parse(localStorage.getItem('thinking_more_stats') || '{"bubbles": 0, "replies": 0}');
         let userProfile = JSON.parse(localStorage.getItem('thinking_more_profile') || 'null');
@@ -909,20 +918,42 @@
         async function loadData() {
             try {
                 const response = await fetch('/api/data');
+                if (!response.ok) throw new Error('Server unreachable');
                 const data = await response.json();
-                thoughts = data.thoughts || [];
-                replies = data.replies || [];
                 
-                // 渲染当前视图
-                if (currentView === 'mood') renderBubbles();
-                if (currentView === 'story') renderStories();
-                if (currentView === 'confession') renderConfessions();
-                if (currentView === 'friends_feed') renderFriendsFeed();
+                // 只有在成功获取数据且数据不为空时才覆盖本地
+                if (data.thoughts && data.thoughts.length > 0) {
+                    thoughts = data.thoughts;
+                }
+                if (data.replies) {
+                    replies = data.replies;
+                }
                 
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('同步数据失败，使用本地/打样数据:', error);
+                updateConnectionStatus(false);
+            } finally {
+                // 无论成功失败，都渲染当前视图
+                renderCurrentView();
                 updateNotificationDot();
                 updateStats();
-            } catch (error) {
-                console.error('加载数据失败:', error);
+            }
+        }
+
+        function renderCurrentView() {
+            if (currentView === 'mood') renderBubbles();
+            if (currentView === 'story') renderStories();
+            if (currentView === 'confession') renderConfessions();
+            if (currentView === 'friends_feed') renderFriendsFeed();
+        }
+
+        function updateConnectionStatus(online) {
+            const statusDot = document.getElementById('sync-status-dot');
+            const statusText = document.getElementById('sync-status-text');
+            if (statusDot && statusText) {
+                statusDot.className = `w-2 h-2 rounded-full ${online ? 'bg-green-400' : 'bg-amber-400 animate-pulse'}`;
+                statusText.textContent = online ? '已连接云端同步' : '本地模式 (同步服务器未就绪)';
             }
         }
 

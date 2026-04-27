@@ -12,7 +12,7 @@ if not os.path.exists(DATA_FILE):
 
 class MyHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/api/data':
+        if self.path.startswith('/api/data'):
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -27,13 +27,14 @@ class MyHandler(http.server.SimpleHTTPRequestHandler):
         post_data = self.rfile.read(content_length)
         data = json.loads(post_data.decode('utf-8'))
 
-        if self.path == '/api/thoughts':
+        path = self.path.split('?')[0] # 忽略查询参数
+        if path == '/api/thoughts':
             self._update_data('thoughts', data)
-        elif self.path == '/api/thoughts/remove':
+        elif path == '/api/thoughts/remove':
             self._remove_thought(data)
-        elif self.path == '/api/replies':
+        elif path == '/api/replies':
             self._update_data('replies', data)
-        elif self.path == '/api/replies/update':
+        elif path == '/api/replies/update':
             self._update_reply(data)
         else:
             self.send_response(404)
