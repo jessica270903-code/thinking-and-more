@@ -203,8 +203,8 @@
 
         @keyframes float {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            33% { transform: translate(15px, -30px) rotate(1deg); }
-            66% { transform: translate(-15px, -45px) rotate(-1deg); }
+            33% { transform: translate(var(--mx1), var(--my1)) rotate(2deg); }
+            66% { transform: translate(var(--mx2), var(--my2)) rotate(-2deg); }
         }
 
         @keyframes wobble {
@@ -762,7 +762,7 @@
                 <div class="mt-8 pt-8 border-t border-rose-100/50 w-full space-y-6">
                     <div>
                         <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Sync Status</div>
-                        <div class="flex items-center gap-3 bg-rose-50/50 p-4 rounded-2xl">
+                        <div class="flex items-center gap-3 bg-rose-50/50 p-4 rounded-2xl cursor-pointer hover:bg-rose-100/50 transition-colors" onclick="loadData()">
                             <div id="sync-status-dot" class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
                             <span id="sync-status-text" class="text-rose-300 font-bold text-xs">检测同步服务器...</span>
                         </div>
@@ -890,7 +890,26 @@
         const messageList = document.getElementById('message-list');
         const friendsList = document.getElementById('friends-list');
 
-        let currentView = 'mood'; // 'mood', 'story', 'confession', 'friends_feed'
+        // 安全存储辅助
+        const safeStorage = {
+            set(key, value) {
+                try {
+                    localStorage.setItem(key, JSON.stringify(value));
+                } catch (e) {
+                    console.error('LocalStorage 存储失败:', e);
+                }
+            },
+            get(key, defaultValue) {
+                try {
+                    const item = localStorage.getItem(key);
+                    return item ? JSON.parse(item) : defaultValue;
+                } catch (e) {
+                    return defaultValue;
+                }
+            }
+        };
+
+        let currentView = 'mood'; 
         let currentPostType = '分享心情';
         let currentBubbleIndex = null;
         let currentReplyIndex = null;
@@ -905,14 +924,12 @@
             { text: "想和你一起去看凌晨四点的海，看第一缕阳光照亮你的侧脸。虽然只是个梦，但我不想醒来。", type: "匿名告白", userId: "TK-SAMPLE05", userName: "深情独白者", timestamp: 1714261850000 }
         ];
         let replies = [];
-        let userStats = JSON.parse(localStorage.getItem('thinking_more_stats') || '{"bubbles": 0, "replies": 0}');
-        let userProfile = JSON.parse(localStorage.getItem('thinking_more_profile') || 'null');
-        let friends = JSON.parse(localStorage.getItem('thinking_more_friends') || '[]');
+        let userStats = safeStorage.get('thinking_more_stats', {bubbles: 0, replies: 0});
+        let userProfile = safeStorage.get('thinking_more_profile', null);
+        let friends = safeStorage.get('thinking_more_friends', []);
         
-        // 为了让泡泡回来并打样，我们确保这次加载能看到所有内容
-        // 之后用户再次“戳破”时依然会正常记录
         let processedThoughts = [];
-        localStorage.setItem('thinking_more_processed', JSON.stringify([]));
+        safeStorage.set('thinking_more_processed', []);
 
         // 全局同步数据加载
         async function loadData() {
@@ -1289,22 +1306,50 @@
         }
         createClouds();
 
-        function createBubble(thought, index) {
-            if (thought.type && thought.type !== '分享心情') return; // 只在心情视图显示泡泡
+        function renderBubbles() {
+            // 使用 Map 记录当前页面上的泡泡，通过唯一 ID 追踪
+            const currentBubbleIds = new Set();
             
+            thoughts.forEach((thought, index) => {
+                const thoughtKey = `${thought.userId}-${thought.timestamp}`;
+                if ((!thought.type || thought.type === '分享心情') && !processedThoughts.includes(thoughtKey)) {
+                    currentBubbleIds.add(thoughtKey);
+                    
+                    // 如果泡泡已经存在，跳过重新创建，防止“跳变”
+                    if (document.getElementById(`bubble-${thoughtKey}`)) return;
+                    
+                    createBubble(thought, thoughtKey);
+                }
+            });
+
+            // 移除不再存在于 thoughts 列表中的泡泡
+            const allBubbles = bubbleContainer.querySelectorAll('.bubble');
+            allBubbles.forEach(b => {
+                const id = b.id.replace('bubble-', '');
+                if (!currentBubbleIds.has(id)) {
+                    b.classList.add('popping');
+                    setTimeout(() => b.remove(), 400);
+                }
+            });
+        }
+
+        function createBubble(thought, id) {
             const bubble = document.createElement('div');
             bubble.className = 'bubble';
-            bubble.id = `bubble-${index}`;
+            bubble.id = `bubble-${id}`;
             
-            const size = Math.floor(Math.random() * 60) + 150; 
+            const baseSize = window.innerWidth < 600 ? 100 : 150;
+            const randomSize = window.innerWidth < 600 ? 40 : 60;
+            const size = Math.floor(Math.random() * randomSize) + baseSize; 
+            
             bubble.style.width = `${size}px`;
             bubble.style.height = `${size}px`;
 
             // 随机生成彩虹色组合
             const hues = [
-                Math.floor(Math.random() * 360), // 主色相
-                Math.floor(Math.random() * 360), // 次色相
-                Math.floor(Math.random() * 360)  // 辅助色相
+                Math.floor(Math.random() * 360),
+                Math.floor(Math.random() * 360),
+                Math.floor(Math.random() * 360)
             ];
             
             bubble.style.boxShadow = `
@@ -1315,34 +1360,38 @@
                 0 15px 35px rgba(0, 0, 0, 0.05)
             `;
 
-            const maxX = window.innerWidth - size - 40;
-            const maxY = window.innerHeight - size - 160;
-            const left = Math.max(20, Math.floor(Math.random() * maxX));
+            const maxX = window.innerWidth - size - 20;
+            const maxY = window.innerHeight - size - 120;
+            const left = Math.max(10, Math.floor(Math.random() * maxX));
             const top = Math.max(60, Math.floor(Math.random() * maxY));
             
             bubble.style.left = `${left}px`;
             bubble.style.top = `${top}px`;
-            bubble.style.animationDelay = `${Math.random() * -10}s`; // 随机起始位置
+            
+            // 大范围全屏漂浮感
+            bubble.style.animationDelay = `${Math.random() * -30}s`;
+            bubble.style.animationDuration = `${Math.random() * 20 + 30}s, ${Math.random() * 4 + 4}s`; 
+            
+            // 为每个泡泡设置大范围的随机位移 (使用 vw/vh 确保全屏感)
+            const driftRangeX = 40; // 左右漂移 40vw
+            const driftRangeY = 40; // 上下漂移 40vh
+            
+            bubble.style.setProperty('--mx1', `${Math.random() * driftRangeX * 2 - driftRangeX}vw`);
+            bubble.style.setProperty('--my1', `${Math.random() * driftRangeY * 2 - driftRangeY}vh`);
+            bubble.style.setProperty('--mx2', `${Math.random() * driftRangeX * 2 - driftRangeX}vw`);
+            bubble.style.setProperty('--my2', `${Math.random() * driftRangeY * 2 - driftRangeY}vh`);
 
             bubble.textContent = thought.text;
 
             bubble.onclick = () => {
+                // 查找该 thought 在数组中的索引用于后续回复
+                const index = thoughts.findIndex(t => `${t.userId}-${t.timestamp}` === id);
                 currentBubbleIndex = index;
                 originalThoughtDiv.textContent = `“${thought.text}”`;
                 replyModal.classList.remove('hidden');
             };
 
             bubbleContainer.appendChild(bubble);
-        }
-
-        function renderBubbles() {
-            bubbleContainer.innerHTML = '';
-            thoughts.forEach((thought, index) => {
-                const thoughtKey = `${thought.userId}-${thought.timestamp}`;
-                if ((!thought.type || thought.type === '分享心情') && !processedThoughts.includes(thoughtKey)) {
-                    createBubble(thought, index);
-                }
-            });
         }
 
         // 初始数据已由 loadData 处理
@@ -1382,10 +1431,10 @@
         document.getElementById('submit-reply').onclick = async () => {
             const replyText = replyInput.value.trim();
             if (currentBubbleIndex !== null && replyText) {
-                const bubbleEl = document.getElementById(`bubble-${currentBubbleIndex}`);
                 const targetThought = thoughts[currentBubbleIndex];
-                const originalText = targetThought.text;
                 const thoughtKey = `${targetThought.userId}-${targetThought.timestamp}`;
+                const bubbleEl = document.getElementById(`bubble-${thoughtKey}`);
+                const originalText = targetThought.text;
 
                 // 1. 立即关闭弹窗，不等待
                 replyModal.classList.add('hidden');
