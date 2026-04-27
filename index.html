@@ -241,6 +241,216 @@
         }
 
         /* 右上角按钮组 */
+        .top-left-actions {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 110;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .menu-list {
+            position: absolute;
+            top: 65px;
+            left: 0;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 160px;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            transform-origin: top left;
+            animation: menuAppear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes menuAppear {
+            from { opacity: 0; transform: scale(0.8) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-weight: 700;
+            color: #fb7185;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .menu-item:hover {
+            background: rgba(251, 113, 133, 0.1);
+            transform: translateX(5px);
+            color: #f43f5e;
+        }
+
+        /* 视图切换动画 */
+        .view-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 50;
+        }
+
+        .view-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+        }
+
+        /* 故事视图样式 (条文案) */
+        .story-list {
+            max-width: 800px;
+            margin: 160px auto 120px;
+            padding: 0 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .story-item {
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+            backdrop-filter: blur(10px);
+            padding: 25px 35px;
+            border-radius: 15px;
+            border-left: 8px solid #fb7185;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.02);
+            font-size: 1.15rem;
+            color: #4b5563;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            animation: slideIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story-item::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, transparent 50%, rgba(251, 113, 133, 0.1) 50%);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* 告白视图样式 (软木公告栏) */
+        .confession-board {
+            width: 90%;
+            max-width: 1100px;
+            height: 75vh;
+            margin: 140px auto;
+            background-color: #dcb35c;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(139, 90, 43, 0.2) 1px, transparent 1px),
+                radial-gradient(circle at 0% 0%, rgba(139, 90, 43, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+            background-size: 4px 4px, 6px 6px, 100% 100%; /* 模拟软木颗粒 */
+            border: 18px solid #b38b4d;
+            border-radius: 8px;
+            box-shadow: 
+                inset 0 0 80px rgba(0,0,0,0.3),
+                0 20px 50px rgba(0,0,0,0.3);
+            position: relative;
+            padding: 50px;
+            overflow-y: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            justify-content: center;
+            align-content: flex-start;
+        }
+
+        .confession-note {
+            width: 150px;
+            height: 150px;
+            background: #fff;
+            padding: 35px 15px 15px;
+            box-shadow: 
+                1px 1px 2px rgba(0,0,0,0.1),
+                3px 3px 10px rgba(0,0,0,0.15);
+            position: relative;
+            transform: rotate(var(--rotation));
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            font-family: 'Noto Sans SC', sans-serif;
+            font-size: 0.9rem;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 22px;
+            border-bottom-right-radius: 2px; /* 正方形纸条，不需要卷曲太厉害 */
+        }
+
+        /* 横线样式 */
+        .note-ruled {
+            background-image: 
+                linear-gradient(90deg, transparent 39px, #fab1a0 39px, #fab1a0 41px, transparent 41px),
+                linear-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 100% 100%, 100% 24px;
+        }
+
+        /* 方格样式 */
+        .note-grid {
+            background-image: 
+                linear-gradient(#e5e7eb 1px, transparent 1px),
+                linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .confession-note::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0) 95%, rgba(0,0,0,0.05) 100%);
+            pointer-events: none;
+        }
+
+        .confession-note:hover {
+            transform: rotate(0deg) scale(1.1);
+            z-index: 10;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .pin {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: inset -2px -2px 5px rgba(0,0,0,0.2);
+        }
+
+        .love-icon {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
         .top-right-actions {
             position: fixed;
             top: 30px;
@@ -357,14 +567,32 @@
     <!-- 云朵背景层 -->
     <div class="cloud-container" id="cloud-container"></div>
 
+    <!-- 左上角菜单栏 -->
+    <div class="top-left-actions">
+        <button id="menu-btn" class="action-btn" title="菜单">
+            <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+        </button>
+        <div id="menu-list" class="menu-list">
+            <div class="menu-item" onclick="openPostModal('分享心情')">
+                <i data-lucide="heart" style="width: 18px; height: 18px;"></i>
+                分享心情
+            </div>
+            <div class="menu-item" onclick="openPostModal('分享故事')">
+                <i data-lucide="book-open" style="width: 18px; height: 18px;"></i>
+                分享故事
+            </div>
+            <div class="menu-item" onclick="openPostModal('匿名告白')">
+                <i data-lucide="mail" style="width: 18px; height: 18px;"></i>
+                匿名告白
+            </div>
+        </div>
+    </div>
+
     <!-- 顶部标题 -->
     <div class="site-title">Thinking & More</div>
 
     <!-- 右上角按钮组 -->
     <div class="top-right-actions">
-        <button id="share-site" class="action-btn" title="分享网站">
-            <i data-lucide="share-2" style="width: 24px; height: 24px;"></i>
-        </button>
         <button id="open-messages" class="action-btn" title="收到消息">
             <i data-lucide="bell" style="width: 24px; height: 24px;"></i>
             <span class="notification-dot"></span>
@@ -374,12 +602,22 @@
         </button>
     </div>
 
-    <!-- 泡泡容器 -->
-    <main id="bubble-container" class="overflow-hidden"></main>
+    <!-- 泡泡容器 (分享心情) -->
+    <main id="bubble-container" class="view-container overflow-hidden"></main>
+
+    <!-- 故事列表容器 (分享故事) -->
+    <main id="story-container" class="view-container view-hidden overflow-y-auto">
+        <div class="story-list" id="story-list"></div>
+    </main>
+
+    <!-- 告白板容器 (匿名告白) -->
+    <main id="confession-container" class="view-container view-hidden overflow-y-auto">
+        <div class="confession-board" id="confession-board"></div>
+    </main>
 
     <!-- 底部操作栏 -->
     <div class="bottom-nav">
-        <button id="open-modal" class="share-btn">
+        <button id="main-share-btn" onclick="openPostModal('分享心情')" class="share-btn">
             分享你的心情
         </button>
     </div>
@@ -396,8 +634,8 @@
                 <div class="profile-avatar">
                     <i data-lucide="smile" style="width: 50px; height: 50px; stroke-width: 1.5px;"></i>
                 </div>
-                <h2 class="text-2xl font-black text-gray-700 mb-1">治愈系小精灵</h2>
-                <p class="text-rose-300 font-bold mb-6">ID: Thinking_9527</p>
+                <h2 id="profile-name" class="text-2xl font-black text-gray-700 mb-1">治愈系小精灵</h2>
+                <p id="profile-id" class="text-rose-300 font-bold mb-6">ID: Thinking_9527</p>
                 
                 <div class="stats-grid">
                     <div class="stat-item">
@@ -410,21 +648,13 @@
                     </div>
                 </div>
 
-                <!-- 新增：网站状态与官方链接 -->
+                <!-- 新增：网站状态 -->
                 <div class="mt-8 pt-8 border-t border-rose-100/50 w-full space-y-6">
                     <div>
                         <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Site Status</div>
                         <div class="flex items-center gap-3 bg-rose-50/50 p-4 rounded-2xl">
                             <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
                             <span class="text-rose-300 font-bold text-xs">本地开发模式 (Localhost)</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Custom Share Link</div>
-                        <div class="flex items-center justify-between bg-rose-50/50 p-4 rounded-2xl group cursor-pointer hover:bg-rose-100/50 transition-all duration-300" onclick="document.getElementById('share-site').click()">
-                            <span class="text-rose-300 font-bold text-sm tracking-tight">http://thinking&more/</span>
-                            <i data-lucide="copy" class="text-rose-200 group-hover:text-rose-400 transition-colors" style="width: 16px; height: 16px;"></i>
                         </div>
                     </div>
                 </div>
@@ -505,6 +735,10 @@
         lucide.createIcons();
 
         const bubbleContainer = document.getElementById('bubble-container');
+        const storyContainer = document.getElementById('story-container');
+        const confessionContainer = document.getElementById('confession-container');
+        const storyList = document.getElementById('story-list');
+        const confessionBoard = document.getElementById('confession-board');
         const cloudContainer = document.getElementById('cloud-container');
         const modal = document.getElementById('modal');
         const replyModal = document.getElementById('reply-modal');
@@ -517,13 +751,102 @@
         const thanksInput = document.getElementById('thanks-input');
         const messageList = document.getElementById('message-list');
 
+        let currentView = 'mood'; // 'mood', 'story', 'confession'
+        let currentPostType = '分享心情';
         let currentBubbleIndex = null;
         let currentReplyIndex = null;
         let thoughts = JSON.parse(localStorage.getItem('thinking_more_thoughts') || '[]');
         let replies = JSON.parse(localStorage.getItem('thinking_more_replies') || '[]');
         let userStats = JSON.parse(localStorage.getItem('thinking_more_stats') || '{"bubbles": 0, "replies": 0}');
+        let userProfile = JSON.parse(localStorage.getItem('thinking_more_profile') || 'null');
 
-        // 更新统计数据显示
+        // 初始化用户信息
+        function initUserProfile() {
+            if (!userProfile) {
+                const adjectives = ['治愈系', '温柔的', '闪闪发光的', '爱笑的', '静谧的', '勇敢的', '自由的', '梦幻的'];
+                const nouns = ['小精灵', '守护者', '旅行者', '记录员', '观察家', '艺术家', '追光者', '漫游者'];
+                const randomName = adjectives[Math.floor(Math.random() * adjectives.length)] + 
+                                  nouns[Math.floor(Math.random() * nouns.length)];
+                const randomId = 'Thinking_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+                
+                userProfile = {
+                    name: randomName,
+                    id: randomId
+                };
+                localStorage.setItem('thinking_more_profile', JSON.stringify(userProfile));
+            }
+            document.getElementById('profile-name').textContent = userProfile.name;
+            document.getElementById('profile-id').textContent = 'ID: ' + userProfile.id;
+        }
+        initUserProfile();
+
+        // 切换视图逻辑
+        function switchView(view) {
+            currentView = view;
+            const shareBtn = document.getElementById('main-share-btn');
+            [bubbleContainer, storyContainer, confessionContainer].forEach(c => c.classList.add('view-hidden'));
+            
+            if (view === 'mood') {
+                bubbleContainer.classList.remove('view-hidden');
+                shareBtn.textContent = '分享你的心情';
+                shareBtn.onclick = () => openPostModal('分享心情');
+            }
+            if (view === 'story') {
+                storyContainer.classList.remove('view-hidden');
+                shareBtn.textContent = '分享你的故事';
+                shareBtn.onclick = () => openPostModal('分享故事');
+                renderStories();
+            }
+            if (view === 'confession') {
+                confessionContainer.classList.remove('view-hidden');
+                shareBtn.textContent = '写下匿名告白';
+                shareBtn.onclick = () => openPostModal('匿名告白');
+                renderConfessions();
+            }
+        }
+
+        // 菜单逻辑
+        const menuBtn = document.getElementById('menu-btn');
+        const menuList = document.getElementById('menu-list');
+        
+        menuBtn.onclick = (e) => {
+            e.stopPropagation();
+            const isHidden = menuList.style.display === 'none' || menuList.style.display === '';
+            menuList.style.display = isHidden ? 'flex' : 'none';
+        };
+
+        window.onclick = () => {
+            menuList.style.display = 'none';
+        };
+
+        window.openPostModal = (type) => {
+            currentPostType = type;
+            const placeholders = {
+                '分享心情': '此刻的心情是怎样的？写下来变成泡泡吧...',
+                '分享故事': '有什么有趣或难忘的故事想分享吗？',
+                '匿名告白': '写下你想对他/她说的悄悄话...'
+            };
+            
+            const btnTexts = {
+                '分享心情': '吹个泡泡',
+                '分享故事': '拾起这段往事',
+                '匿名告白': '寄出这份心意'
+            };
+
+            const submitBtn = document.getElementById('submit-thought');
+            submitBtn.textContent = btnTexts[type] || '提交';
+
+            // 切换视图
+            if (type === '分享心情') switchView('mood');
+            if (type === '分享故事') switchView('story');
+            if (type === '匿名告白') switchView('confession');
+
+            thoughtInput.placeholder = placeholders[type] || '写下你的想法...';
+            modal.classList.remove('hidden');
+            menuList.style.display = 'none';
+        };
+
+        // 统计逻辑
         function updateStats() {
             document.getElementById('stat-bubbles').textContent = userStats.bubbles;
             document.getElementById('stat-replies').textContent = replies.length;
@@ -532,10 +855,59 @@
         // 更新消息通知红点
         function updateNotificationDot() {
             const dot = document.querySelector('.notification-dot');
-            dot.style.display = replies.length > 0 ? 'block' : 'none';
+            const hasUnread = replies.some(r => !r.isRead);
+            dot.style.display = hasUnread ? 'block' : 'none';
         }
         updateNotificationDot();
         updateStats();
+
+        // 渲染故事列表
+        function renderStories() {
+            storyList.innerHTML = '';
+            thoughts.filter(t => t.type === '分享故事').reverse().forEach(t => {
+                const item = document.createElement('div');
+                item.className = 'story-item';
+                item.textContent = t.text;
+                storyList.appendChild(item);
+            });
+        }
+
+        // 渲染告白板
+        function renderConfessions() {
+            confessionBoard.innerHTML = '';
+            const loveIcons = ['❤️', '💖', '💍', '💌', '✨', '🌹', '🦋'];
+            const pinColors = ['#ff4d4d', '#fffa65', '#32ff7e', '#7d5fff', '#18dcff'];
+            const noteStyles = ['note-ruled', 'note-grid'];
+            
+            thoughts.filter(t => t.type === '匿名告白').forEach((t, i) => {
+                const note = document.createElement('div');
+                const styleClass = noteStyles[Math.floor(Math.random() * noteStyles.length)];
+                note.className = `confession-note ${styleClass}`;
+                const rotation = (Math.random() * 10 - 5) + 'deg';
+                note.style.setProperty('--rotation', rotation);
+                
+                const pin = document.createElement('div');
+                pin.className = 'pin';
+                pin.style.backgroundColor = pinColors[Math.floor(Math.random() * pinColors.length)];
+                
+                const icon = document.createElement('div');
+                icon.className = 'love-icon';
+                icon.textContent = loveIcons[Math.floor(Math.random() * loveIcons.length)];
+                
+                note.innerHTML = t.text;
+                note.appendChild(pin);
+                note.appendChild(icon);
+                
+                // 告白也可以被回复
+                note.onclick = () => {
+                    currentBubbleIndex = thoughts.indexOf(t);
+                    originalThoughtDiv.textContent = t.text;
+                    replyModal.classList.remove('hidden');
+                };
+                
+                confessionBoard.appendChild(note);
+            });
+        }
 
         // 渲染消息列表
         function renderMessages() {
@@ -548,15 +920,18 @@
             }
 
             // 先生成带索引的 HTML 数组，再反转显示，确保索引对应正确
-            const messageHTMLs = replies.map((msg, i) => `
-                <div class="p-6 bg-rose-50/50 rounded-3xl border-l-4 border-rose-300 relative group">
-                    <div class="text-xs text-rose-300 mb-2 font-bold">${new Date(msg.timestamp).toLocaleString()}</div>
-                    <div class="text-sm text-gray-400 mb-2">针对：“${msg.originalText}”</div>
-                    <div class="text-gray-700 font-bold mb-4">${msg.replyText}</div>
-                    
-                    ${msg.thanksText ? `
-                        <div class="mt-3 p-4 bg-white/50 rounded-2xl text-sm text-rose-400 font-bold border border-rose-100">
-                            💝 我的感谢：${msg.thanksText}
+            const messageHTMLs = replies.map((reply, i) => `
+                <div class="p-6 bg-rose-50/50 rounded-3xl space-y-3 relative group transition-all hover:bg-rose-50">
+                    <div class="flex items-center gap-2 mb-2">
+                        <div class="w-2 h-2 bg-rose-300 rounded-full"></div>
+                        <span class="text-[10px] text-rose-300 font-black uppercase tracking-widest">Received Reply</span>
+                    </div>
+                    <div class="text-gray-400 text-xs italic mb-1">“${reply.originalText}”</div>
+                    <div class="text-gray-700 font-bold leading-relaxed">${reply.replyText}</div>
+                    ${reply.thanksText ? `
+                        <div class="mt-4 pt-4 border-t border-rose-100/50 flex items-start gap-3">
+                            <span class="text-rose-400">✨</span>
+                            <div class="text-rose-400 text-sm font-bold italic">我的感谢：${reply.thanksText}</div>
                         </div>
                     ` : `
                         <div class="flex justify-end">
@@ -600,6 +975,11 @@
 
         // 消息弹窗逻辑
         document.getElementById('open-messages').onclick = () => {
+            // 标记所有消息为已读
+            replies.forEach(r => r.isRead = true);
+            localStorage.setItem('thinking_more_replies', JSON.stringify(replies));
+            updateNotificationDot();
+            
             renderMessages();
             messageModal.classList.remove('hidden');
         };
@@ -611,89 +991,6 @@
             profileModal.classList.remove('hidden');
         };
         document.getElementById('close-profile-modal').onclick = () => profileModal.classList.add('hidden');
-
-        // 分享网站逻辑
-        document.getElementById('share-site').onclick = () => {
-            const shareUrl = "http://thinking&more/";
-            
-            // 复制成功的 UI 反馈
-            const showSuccessToast = () => {
-                const toast = document.createElement('div');
-                toast.className = 'fixed top-1/2 left-1/2 z-[300] bg-white/95 backdrop-blur-xl px-12 py-8 rounded-[3rem] shadow-[0_25px_60px_rgba(251,113,133,0.3)] text-center border-none min-w-[320px] flex flex-col items-center justify-center animate-toast';
-                toast.innerHTML = `
-                    <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                        <i data-lucide="check" class="text-rose-400" style="width: 40px; height: 40px;"></i>
-                    </div>
-                    <div class="text-rose-400 font-black text-2xl mb-2">复制成功啦！</div>
-                    <div class="text-gray-400 font-bold text-sm tracking-wide italic bg-rose-50 px-4 py-1 rounded-full mb-4">${shareUrl}</div>
-                    <div class="text-[11px] text-rose-300 bg-rose-50/50 px-5 py-3 rounded-2xl leading-relaxed text-left">
-                        <div class="font-black mb-1 flex items-center gap-1">
-                            <i data-lucide="help-circle" style="width: 12px; height: 12px;"></i>
-                            为什么浏览器搜不到？
-                        </div>
-                        由于这只是一个“自定义名字”，并非真实注册的网址，所以目前仅在您的电脑本地运行。如果您想让全世界都能搜到，需要进行“网站发布”。
-                    </div>
-                `;
-                document.body.appendChild(toast);
-                lucide.createIcons();
-                
-                setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transform = 'translate(-50%, -45%) scale(0.95)';
-                    toast.style.transition = 'all 0.5s ease';
-                    setTimeout(() => toast.remove(), 500);
-                }, 2500);
-            };
-
-            // 复制失败的兜底弹窗（让用户手动复制）
-            const showFallbackPopup = (text) => {
-                const fallback = document.createElement('div');
-                fallback.className = 'fixed inset-0 z-[300] flex items-center justify-center bg-rose-500/20 backdrop-blur-md p-6';
-                fallback.innerHTML = `
-                    <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm shadow-2xl text-center">
-                        <div class="text-rose-400 font-black text-xl mb-4">手动复制链接</div>
-                        <input type="text" value="${text}" readonly class="w-full p-4 bg-rose-50 rounded-2xl border-2 border-rose-100 text-rose-400 font-bold text-center mb-6 focus:outline-none">
-                        <button class="w-full bg-rose-300 text-white py-4 rounded-full font-black shadow-lg hover:bg-rose-400 transition-all" onclick="this.parentElement.parentElement.remove()">好哒</button>
-                    </div>
-                `;
-                document.body.appendChild(fallback);
-                const input = fallback.querySelector('input');
-                input.select();
-                input.setSelectionRange(0, 99999);
-            };
-
-            // 核心复制逻辑
-            if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(shareUrl)
-                    .then(showSuccessToast)
-                    .catch(() => {
-                        // 如果 Clipboard API 失败，尝试 execCommand
-                        tryCopyFallback(shareUrl);
-                    });
-            } else {
-                tryCopyFallback(shareUrl);
-            }
-
-            function tryCopyFallback(text) {
-                try {
-                    const textArea = document.createElement("textarea");
-                    textArea.value = text;
-                    textArea.style.position = "fixed";
-                    textArea.style.left = "-9999px";
-                    textArea.style.top = "0";
-                    textArea.style.opacity = "0";
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    const successful = document.execCommand('copy');
-                    textArea.remove();
-                    if (successful) showSuccessToast();
-                    else showFallbackPopup(text);
-                } catch (err) {
-                    showFallbackPopup(text);
-                }
-            }
-        };
 
         // 漫画风格云朵生成
         function createClouds() {
@@ -713,6 +1010,8 @@
         createClouds();
 
         function createBubble(thought, index) {
+            if (thought.type && thought.type !== '分享心情') return; // 只在心情视图显示泡泡
+            
             const bubble = document.createElement('div');
             bubble.className = 'bubble';
             bubble.id = `bubble-${index}`;
@@ -758,7 +1057,11 @@
 
         function renderBubbles() {
             bubbleContainer.innerHTML = '';
-            thoughts.forEach((t, i) => createBubble(t, i));
+            thoughts.forEach((thought, index) => {
+                if (!thought.type || thought.type === '分享心情') {
+                    createBubble(thought, index);
+                }
+            });
         }
 
         if (thoughts.length === 0) {
@@ -771,15 +1074,21 @@
             ];
             localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
         }
+        // 初始化渲染
         renderBubbles();
+        renderStories();
+        renderConfessions();
 
         // 提交逻辑
-        document.getElementById('open-modal').onclick = () => modal.classList.remove('hidden');
         document.getElementById('close-modal').onclick = () => modal.classList.add('hidden');
         document.getElementById('submit-thought').onclick = () => {
             const text = thoughtInput.value.trim();
             if (text) {
-                const newThought = { text, timestamp: Date.now() };
+                const newThought = {
+                    text,
+                    type: currentPostType,
+                    timestamp: Date.now()
+                };
                 thoughts.push(newThought);
                 localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
                 
@@ -788,9 +1097,17 @@
                 localStorage.setItem('thinking_more_stats', JSON.stringify(userStats));
                 updateStats();
 
-                renderBubbles();
+                if (currentPostType === '分享心情') renderBubbles();
+                if (currentPostType === '分享故事') renderStories();
+                if (currentPostType === '匿名告白') renderConfessions();
+                
                 thoughtInput.value = '';
                 modal.classList.add('hidden');
+
+                // 自动切换到对应视图
+                if (currentPostType === '分享心情') switchView('mood');
+                if (currentPostType === '分享故事') switchView('story');
+                if (currentPostType === '匿名告白') switchView('confession');
             }
         };
 
