@@ -1383,12 +1383,72 @@
 
             bubble.textContent = thought.text;
 
-            bubble.onclick = () => {
-                // 查找该 thought 在数组中的索引用于后续回复
-                const index = thoughts.findIndex(t => `${t.userId}-${t.timestamp}` === id);
-                currentBubbleIndex = index;
-                originalThoughtDiv.textContent = `“${thought.text}”`;
-                replyModal.classList.remove('hidden');
+            // 交互逻辑：手指拨动改变走向
+            let isDragging = false;
+            let startX, startY;
+            let lastX, lastY;
+            let startTime;
+
+            bubble.onpointerdown = (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                lastX = startX;
+                lastY = startY;
+                startTime = Date.now();
+                bubble.style.transition = 'none'; // 拖动时禁用过渡
+                bubble.setPointerCapture(e.pointerId);
+            };
+
+            bubble.onpointermove = (e) => {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+                
+                // 实时更新位置
+                const currentLeft = parseFloat(bubble.style.left);
+                const currentTop = parseFloat(bubble.style.top);
+                bubble.style.left = `${currentLeft + dx}px`;
+                bubble.style.top = `${currentTop + dy}px`;
+                
+                lastX = e.clientX;
+                lastY = e.clientY;
+            };
+
+            bubble.onpointerup = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                bubble.releasePointerCapture(e.pointerId);
+                
+                const duration = Date.now() - startTime;
+                const totalDist = Math.sqrt(Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2));
+
+                // 如果移动距离很小且时间短，视为点击
+                if (totalDist < 10 && duration < 300) {
+                    const index = thoughts.findIndex(t => `${t.userId}-${t.timestamp}` === id);
+                    currentBubbleIndex = index;
+                    originalThoughtDiv.textContent = `“${thought.text}”`;
+                    replyModal.classList.remove('hidden');
+                } else {
+                    // 否则视为“拨动”，改变未来的走向变量
+                    const moveX = (e.clientX - startX) * 0.5; // 拨动的力度
+                    const moveY = (e.clientY - startY) * 0.5;
+                    
+                    // 将拨动的方向注入到 CSS 变量中，改变它未来的漂流轨迹
+                    const currentMx1 = parseFloat(bubble.style.getPropertyValue('--mx1')) || 0;
+                    const currentMy1 = parseFloat(bubble.style.getPropertyValue('--my1')) || 0;
+                    
+                    // 转换 px 到 vw/vh 的粗略估算
+                    const vw = moveX / window.innerWidth * 100;
+                    const vh = moveY / window.innerHeight * 100;
+                    
+                    bubble.style.setProperty('--mx1', `${currentMx1 + vw}vw`);
+                    bubble.style.setProperty('--my1', `${currentMy1 + vh}vh`);
+                    
+                    // 恢复平滑动画
+                    bubble.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+                }
             };
 
             bubbleContainer.appendChild(bubble);
