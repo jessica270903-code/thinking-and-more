@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thinking & More</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            /* 加深后的温暖粉米色背景 */
+            background: linear-gradient(135deg, #fceae2 0%, #f7dcd0 50%, #f2cfbf 100%) no-repeat fixed;
+            background-size: cover;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 网站标题个性化：粉色 + 手写感字体 + 动态效果 */
+        .site-title {
+            position: fixed;
+            top: 2.5rem;
+            left: 0;
+            right: 0;
+            text-align: center;
+            z-index: 100;
+            font-family: 'Pacifico', cursive;
+            color: #e761bd; /* 鲜艳粉色 */
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.9), 
+                         4px 4px 15px rgba(231, 97, 189, 0.2);
+            font-size: 4rem;
+            letter-spacing: -1px;
+            display: block;
+            animation: titleFloat 6s ease-in-out infinite;
+            cursor: default;
+            user-select: none;
+            pointer-events: none; /* 防止遮挡下方泡泡点击 */
+        }
+
+        @keyframes titleFloat {
+            0%, 100% { transform: translateY(0) rotate(-1deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+        }
+
+        /* 真实蓬松感的云朵：无边框，多重模糊阴影 */
+        .cloud-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .cloud {
+            position: absolute;
+            background: #fff;
+            border-radius: 100px;
+            opacity: 0.3; /* 降低透明度，露出背景色 */
+            filter: blur(40px);
+            box-shadow: 40px 20px 80px rgba(255, 255, 255, 0.4);
+            animation: moveClouds 180s linear infinite;
+        }
+
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        .cloud::before {
+            width: 80%;
+            height: 180%;
+            top: -90%;
+            left: 10%;
+        }
+
+        .cloud::after {
+            width: 60%;
+            height: 140%;
+            top: -60%;
+            right: 10%;
+        }
+
+        @keyframes moveClouds {
+            from { transform: translateX(-600px); }
+            to { transform: translateX(100vw); }
+        }
+
+        /* 极致虹彩泡泡：支持多色变幻，强化可见度 */
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 25px;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2), opacity 0.3s ease;
+            backdrop-filter: blur(6px);
+            animation: float 12s ease-in-out infinite, wobble 6s ease-in-out infinite;
+            word-wrap: break-word;
+            max-width: 220px;
+            color: #334155;
+            font-size: 1rem;
+            font-weight: 700;
+            user-select: none;
+            z-index: 10;
+            will-change: transform, opacity;
+            
+            /* 增强通透感，移除边框 */
+            background: radial-gradient(circle at 30% 30%, 
+                rgba(255, 255, 255, 0.8) 0%, 
+                rgba(255, 255, 255, 0.3) 50%, 
+                rgba(255, 255, 255, 0.1) 100%);
+            
+            border: none;
+            box-shadow: none; /* 由 JS 动态设置彩虹色阴影 */
+        }
+
+        /* 强化高光点 */
+        .bubble::after {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            width: 30%;
+            height: 20%;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 80%);
+            border-radius: 50%;
+            transform: rotate(-45deg);
+            z-index: 2;
+        }
+
+        /* 次级高光点 */
+        .bubble::before {
+            content: '';
+            position: absolute;
+            bottom: 20%;
+            right: 20%;
+            width: 15%;
+            height: 10%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            filter: blur(1px);
+            z-index: 2;
+        }
+
+        .bubble:hover {
+            transform: scale(1.05) translateY(-10px);
+            z-index: 50;
+            box-shadow: inset 0 0 60px rgba(255, 255, 255, 0.8), 0 30px 60px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        /* 爆裂动画：更具爆发力和灵动感 */
+        .bubble.popping {
+            animation: burst 0.4s cubic-bezier(0.1, 0.8, 0.3, 1) forwards !important;
+            pointer-events: none;
+            border-color: rgba(255, 255, 255, 1);
+        }
+
+        @keyframes burst {
+            0% { transform: scale(1); opacity: 1; filter: brightness(1.2); }
+            20% { transform: scale(0.9); opacity: 1; } /* 戳破前的微小收缩 */
+            50% { transform: scale(1.3); opacity: 0.8; filter: brightness(1.5) blur(2px); }
+            100% { transform: scale(1.6); opacity: 0; filter: brightness(2) blur(10px); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(15px, -30px) rotate(1deg); }
+            66% { transform: translate(-15px, -45px) rotate(-1deg); }
+        }
+
+        @keyframes wobble {
+            0%, 100% { border-radius: 50%; }
+            25% { border-radius: 48% 52% 52% 48% / 52% 48% 52% 48%; }
+            50% { border-radius: 52% 48% 48% 52% / 48% 52% 48% 52%; }
+            75% { border-radius: 49% 51% 51% 49% / 51% 49% 51% 49%; }
+        }
+
+        /* 弹窗动画 */
+        @keyframes fadeInZoom {
+            from { opacity: 0; transform: translate(-50%, -40%) scale(0.9); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .animate-toast {
+            animation: fadeInZoom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* 底部居中导航：少女感、粉白融合、无边框 */
+        .bottom-nav {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .share-btn {
+            background: linear-gradient(135deg, rgba(255, 241, 242, 0.9) 0%, rgba(254, 226, 226, 0.8) 100%);
+            backdrop-filter: blur(8px);
+            border: none;
+            padding: 14px 40px;
+            border-radius: 100px;
+            box-shadow: 0 10px 30px rgba(251, 113, 133, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fb7185;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 1px;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-8px) scale(1.05);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 20px 40px rgba(251, 113, 133, 0.3);
+            color: #f43f5e;
+        }
+
+        .share-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 右上角按钮组 */
+        .top-right-actions {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 110;
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            width: 54px;
+            height: 54px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fb7185;
+            box-shadow: 0 8px 20px rgba(251, 113, 133, 0.15);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: none;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.9);
+            color: #f43f5e;
+        }
+
+        .action-btn:active {
+            transform: scale(0.9);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 10px;
+            height: 10px;
+            background: #f43f5e;
+            border: 2px solid #fff;
+            border-radius: 50%;
+        }
+
+        /* 个人信息卡片样式 */
+        .profile-card {
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 35px;
+            background: linear-gradient(135deg, #fecdd3 0%, #fda4af 100%);
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 15px 30px rgba(251, 113, 133, 0.2);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .stat-item {
+            background: rgba(251, 113, 133, 0.05);
+            padding: 20px;
+            border-radius: 25px;
+        }
+
+        .writing-emoji {
+            opacity: 0.3;
+            font-size: 1.4rem;
+            filter: grayscale(1);
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border: none;
+        }
+
+        #bubble-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+        }
+
+        ::-webkit-scrollbar { display: none; }
+
+        /* 消息列表滚动条优化 */
+        .custom-scrollbar::-webkit-scrollbar {
+            display: block;
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(251, 113, 133, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 113, 133, 0.4);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- 云朵背景层 -->
+    <div class="cloud-container" id="cloud-container"></div>
+
+    <!-- 顶部标题 -->
+    <div class="site-title">Thinking & More</div>
+
+    <!-- 右上角按钮组 -->
+    <div class="top-right-actions">
+        <button id="share-site" class="action-btn" title="分享网站">
+            <i data-lucide="share-2" style="width: 24px; height: 24px;"></i>
+        </button>
+        <button id="open-messages" class="action-btn" title="收到消息">
+            <i data-lucide="bell" style="width: 24px; height: 24px;"></i>
+            <span class="notification-dot"></span>
+        </button>
+        <button id="open-profile" class="action-btn" title="个人主页">
+            <i data-lucide="user" style="width: 24px; height: 24px;"></i>
+        </button>
+    </div>
+
+    <!-- 泡泡容器 -->
+    <main id="bubble-container" class="overflow-hidden"></main>
+
+    <!-- 底部操作栏 -->
+    <div class="bottom-nav">
+        <button id="open-modal" class="share-btn">
+            分享你的心情
+        </button>
+    </div>
+
+    <!-- 个人主页弹窗 -->
+    <div id="profile-modal" class="fixed inset-0 z-[150] hidden flex items-center justify-center p-4 bg-rose-500/5 backdrop-blur-md">
+        <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+            <div class="flex justify-end mb-2">
+                <button id="close-profile-modal" class="text-gray-300 hover:text-rose-400 transition-colors">
+                    <i data-lucide="x" style="stroke-width: 3px;"></i>
+                </button>
+            </div>
+            <div class="profile-card">
+                <div class="profile-avatar">
+                    <i data-lucide="smile" style="width: 50px; height: 50px; stroke-width: 1.5px;"></i>
+                </div>
+                <h2 class="text-2xl font-black text-gray-700 mb-1">治愈系小精灵</h2>
+                <p class="text-rose-300 font-bold mb-6">ID: Thinking_9527</p>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="text-2xl font-black text-rose-400" id="stat-bubbles">0</div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider">吹出的泡泡</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="text-2xl font-black text-rose-400" id="stat-replies">0</div>
+                        <div class="text-xs text-gray-400 font-bold uppercase tracking-wider">收到的温暖</div>
+                    </div>
+                </div>
+
+                <!-- 新增：网站状态与官方链接 -->
+                <div class="mt-8 pt-8 border-t border-rose-100/50 w-full space-y-6">
+                    <div>
+                        <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Site Status</div>
+                        <div class="flex items-center gap-3 bg-rose-50/50 p-4 rounded-2xl">
+                            <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+                            <span class="text-rose-300 font-bold text-xs">本地开发模式 (Localhost)</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-[10px] text-gray-300 font-black uppercase tracking-widest mb-2">Custom Share Link</div>
+                        <div class="flex items-center justify-between bg-rose-50/50 p-4 rounded-2xl group cursor-pointer hover:bg-rose-100/50 transition-all duration-300" onclick="document.getElementById('share-site').click()">
+                            <span class="text-rose-300 font-bold text-sm tracking-tight">http://thinking&more/</span>
+                            <i data-lucide="copy" class="text-rose-200 group-hover:text-rose-400 transition-colors" style="width: 16px; height: 16px;"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-6 bg-rose-50/30 rounded-3xl text-sm text-gray-500 italic leading-relaxed">
+                    “每一个泡泡都承载着一段时光，
+                    愿这里的温柔能治愈你的每一个夜晚。”
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 消息列表弹窗 -->
+    <div id="message-modal" class="fixed inset-0 z-[140] hidden flex items-center justify-center p-4 bg-rose-500/5 backdrop-blur-md">
+        <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-rose-400">💌 收到回应</h2>
+                <button id="close-message-modal" class="text-gray-300 hover:text-rose-400 transition-colors">
+                    <i data-lucide="x" style="stroke-width: 3px;"></i>
+                </button>
+            </div>
+            <div id="message-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <!-- 消息内容将由 JS 生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 感谢回复弹窗 -->
+    <div id="thanks-modal" class="fixed inset-0 z-[160] hidden flex items-center justify-center p-4 bg-rose-500/10 backdrop-blur-md">
+        <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-sm shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+            <h2 class="text-2xl font-black text-rose-400 mb-6">💝 寄送感谢</h2>
+            <textarea id="thanks-input" class="w-full h-32 p-6 rounded-3xl bg-rose-50/30 border-none focus:ring-2 focus:ring-rose-200 resize-none mb-6 text-gray-600 font-bold placeholder-rose-200" placeholder="写下你想对这位温暖陌生人说的话..."></textarea>
+            <div class="flex gap-4">
+                <button id="cancel-thanks" class="flex-1 py-3 rounded-full font-bold text-gray-400 hover:bg-gray-100 transition-all">取消</button>
+                <button id="confirm-thanks" class="flex-1 bg-rose-300 hover:bg-rose-400 text-white py-3 rounded-full font-bold shadow-lg transition-all">寄出感谢</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提交心情弹窗 -->
+    <div id="modal" class="fixed inset-0 z-[120] hidden flex items-center justify-center p-4 bg-sky-500/10 backdrop-blur-md">
+        <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-black text-rose-400">✍️ 记录此刻...</h2>
+                <button id="close-modal" class="text-gray-300 hover:text-rose-400 transition-colors">
+                    <i data-lucide="x" style="stroke-width: 3px;"></i>
+                </button>
+            </div>
+            <textarea id="thought-input" class="w-full h-48 p-6 rounded-3xl bg-rose-50/30 border-none focus:ring-2 focus:ring-rose-200 resize-none mb-8 text-gray-600 text-lg font-bold placeholder-rose-200" placeholder="近期的困境、想法、体验... 吹一个泡泡把它带走吧。"></textarea>
+            <div class="flex justify-center">
+                <button id="submit-thought" class="bg-rose-300 hover:bg-rose-400 text-white px-12 py-4 rounded-full transition-all shadow-lg font-black text-xl tracking-widest transform active:scale-95">
+                    吹个泡泡
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回答/实现弹窗 -->
+    <div id="reply-modal" class="fixed inset-0 z-[130] hidden flex items-center justify-center p-4 bg-pink-500/10 backdrop-blur-md">
+        <div class="bg-white/90 rounded-[2.5rem] p-10 w-full max-w-md shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-none">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-3xl font-black text-rose-400">💖 温暖回应</h2>
+                <button id="close-reply-modal" class="text-gray-300 hover:text-rose-400 transition-colors">
+                    <i data-lucide="x" style="stroke-width: 3px;"></i>
+                </button>
+            </div>
+            <div id="original-thought" class="mb-8 p-6 bg-rose-50/50 rounded-3xl italic text-gray-600 font-bold border-none"></div>
+            <textarea id="reply-input" class="w-full h-32 p-6 rounded-3xl bg-rose-50/30 border-none focus:ring-2 focus:ring-rose-200 resize-none mb-8 text-gray-600 font-bold placeholder-rose-200" placeholder="写一点安慰的话，回答完这个泡泡就会实现并消散..."></textarea>
+            <div class="flex justify-center">
+                <button id="submit-reply" class="bg-rose-300 hover:bg-rose-400 text-white px-12 py-4 rounded-full transition-all shadow-lg font-black text-xl tracking-widest transform active:scale-95">
+                    温暖回应并实现
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const bubbleContainer = document.getElementById('bubble-container');
+        const cloudContainer = document.getElementById('cloud-container');
+        const modal = document.getElementById('modal');
+        const replyModal = document.getElementById('reply-modal');
+        const messageModal = document.getElementById('message-modal');
+        const profileModal = document.getElementById('profile-modal');
+        const thanksModal = document.getElementById('thanks-modal');
+        const originalThoughtDiv = document.getElementById('original-thought');
+        const thoughtInput = document.getElementById('thought-input');
+        const replyInput = document.getElementById('reply-input');
+        const thanksInput = document.getElementById('thanks-input');
+        const messageList = document.getElementById('message-list');
+
+        let currentBubbleIndex = null;
+        let currentReplyIndex = null;
+        let thoughts = JSON.parse(localStorage.getItem('thinking_more_thoughts') || '[]');
+        let replies = JSON.parse(localStorage.getItem('thinking_more_replies') || '[]');
+        let userStats = JSON.parse(localStorage.getItem('thinking_more_stats') || '{"bubbles": 0, "replies": 0}');
+
+        // 更新统计数据显示
+        function updateStats() {
+            document.getElementById('stat-bubbles').textContent = userStats.bubbles;
+            document.getElementById('stat-replies').textContent = replies.length;
+        }
+
+        // 更新消息通知红点
+        function updateNotificationDot() {
+            const dot = document.querySelector('.notification-dot');
+            dot.style.display = replies.length > 0 ? 'block' : 'none';
+        }
+        updateNotificationDot();
+        updateStats();
+
+        // 渲染消息列表
+        function renderMessages() {
+            if (replies.length === 0) {
+                messageList.innerHTML = `
+                    <div class="p-6 bg-rose-50/50 rounded-3xl text-gray-500 text-center italic">
+                        暂时还没有收到新的回应哦...
+                    </div>`;
+                return;
+            }
+
+            // 先生成带索引的 HTML 数组，再反转显示，确保索引对应正确
+            const messageHTMLs = replies.map((msg, i) => `
+                <div class="p-6 bg-rose-50/50 rounded-3xl border-l-4 border-rose-300 relative group">
+                    <div class="text-xs text-rose-300 mb-2 font-bold">${new Date(msg.timestamp).toLocaleString()}</div>
+                    <div class="text-sm text-gray-400 mb-2">针对：“${msg.originalText}”</div>
+                    <div class="text-gray-700 font-bold mb-4">${msg.replyText}</div>
+                    
+                    ${msg.thanksText ? `
+                        <div class="mt-3 p-4 bg-white/50 rounded-2xl text-sm text-rose-400 font-bold border border-rose-100">
+                            💝 我的感谢：${msg.thanksText}
+                        </div>
+                    ` : `
+                        <div class="flex justify-end">
+                            <button onclick="openThanksModal(${i})" class="text-xs bg-rose-200 hover:bg-rose-300 text-white px-4 py-2 rounded-full transition-all font-bold">
+                                答复/感谢
+                            </button>
+                        </div>
+                    `}
+                </div>
+            `);
+            
+            messageList.innerHTML = messageHTMLs.reverse().join('');
+        }
+
+        // 显示感谢弹窗
+        window.openThanksModal = (index) => {
+            currentReplyIndex = index;
+            thanksInput.value = '';
+            thanksModal.classList.remove('hidden');
+        };
+
+        // 寄出感谢逻辑
+        document.getElementById('confirm-thanks').onclick = () => {
+            const text = thanksInput.value.trim();
+            if (text && currentReplyIndex !== null) {
+                replies[currentReplyIndex].thanksText = text;
+                localStorage.setItem('thinking_more_replies', JSON.stringify(replies));
+                renderMessages();
+                thanksModal.classList.add('hidden');
+                
+                // 成功提示
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[200] bg-white/95 backdrop-blur-md px-10 py-5 rounded-[2rem] shadow-2xl text-rose-400 font-bold animate-bounce border-none flex items-center gap-3';
+                toast.innerHTML = '<span>✨</span> 感谢信已通过泡泡送达对方！';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            }
+        };
+
+        document.getElementById('cancel-thanks').onclick = () => thanksModal.classList.add('hidden');
+
+        // 消息弹窗逻辑
+        document.getElementById('open-messages').onclick = () => {
+            renderMessages();
+            messageModal.classList.remove('hidden');
+        };
+        document.getElementById('close-message-modal').onclick = () => messageModal.classList.add('hidden');
+
+        // 个人主页逻辑
+        document.getElementById('open-profile').onclick = () => {
+            updateStats();
+            profileModal.classList.remove('hidden');
+        };
+        document.getElementById('close-profile-modal').onclick = () => profileModal.classList.add('hidden');
+
+        // 分享网站逻辑
+        document.getElementById('share-site').onclick = () => {
+            const shareUrl = "http://thinking&more/";
+            
+            // 复制成功的 UI 反馈
+            const showSuccessToast = () => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-1/2 left-1/2 z-[300] bg-white/95 backdrop-blur-xl px-12 py-8 rounded-[3rem] shadow-[0_25px_60px_rgba(251,113,133,0.3)] text-center border-none min-w-[320px] flex flex-col items-center justify-center animate-toast';
+                toast.innerHTML = `
+                    <div class="w-20 h-20 bg-rose-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
+                        <i data-lucide="check" class="text-rose-400" style="width: 40px; height: 40px;"></i>
+                    </div>
+                    <div class="text-rose-400 font-black text-2xl mb-2">复制成功啦！</div>
+                    <div class="text-gray-400 font-bold text-sm tracking-wide italic bg-rose-50 px-4 py-1 rounded-full mb-4">${shareUrl}</div>
+                    <div class="text-[11px] text-rose-300 bg-rose-50/50 px-5 py-3 rounded-2xl leading-relaxed text-left">
+                        <div class="font-black mb-1 flex items-center gap-1">
+                            <i data-lucide="help-circle" style="width: 12px; height: 12px;"></i>
+                            为什么浏览器搜不到？
+                        </div>
+                        由于这只是一个“自定义名字”，并非真实注册的网址，所以目前仅在您的电脑本地运行。如果您想让全世界都能搜到，需要进行“网站发布”。
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                lucide.createIcons();
+                
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translate(-50%, -45%) scale(0.95)';
+                    toast.style.transition = 'all 0.5s ease';
+                    setTimeout(() => toast.remove(), 500);
+                }, 2500);
+            };
+
+            // 复制失败的兜底弹窗（让用户手动复制）
+            const showFallbackPopup = (text) => {
+                const fallback = document.createElement('div');
+                fallback.className = 'fixed inset-0 z-[300] flex items-center justify-center bg-rose-500/20 backdrop-blur-md p-6';
+                fallback.innerHTML = `
+                    <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm shadow-2xl text-center">
+                        <div class="text-rose-400 font-black text-xl mb-4">手动复制链接</div>
+                        <input type="text" value="${text}" readonly class="w-full p-4 bg-rose-50 rounded-2xl border-2 border-rose-100 text-rose-400 font-bold text-center mb-6 focus:outline-none">
+                        <button class="w-full bg-rose-300 text-white py-4 rounded-full font-black shadow-lg hover:bg-rose-400 transition-all" onclick="this.parentElement.parentElement.remove()">好哒</button>
+                    </div>
+                `;
+                document.body.appendChild(fallback);
+                const input = fallback.querySelector('input');
+                input.select();
+                input.setSelectionRange(0, 99999);
+            };
+
+            // 核心复制逻辑
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(shareUrl)
+                    .then(showSuccessToast)
+                    .catch(() => {
+                        // 如果 Clipboard API 失败，尝试 execCommand
+                        tryCopyFallback(shareUrl);
+                    });
+            } else {
+                tryCopyFallback(shareUrl);
+            }
+
+            function tryCopyFallback(text) {
+                try {
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-9999px";
+                    textArea.style.top = "0";
+                    textArea.style.opacity = "0";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    const successful = document.execCommand('copy');
+                    textArea.remove();
+                    if (successful) showSuccessToast();
+                    else showFallbackPopup(text);
+                } catch (err) {
+                    showFallbackPopup(text);
+                }
+            }
+        };
+
+        // 漫画风格云朵生成
+        function createClouds() {
+            for (let i = 0; i < 12; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                const w = Math.random() * 200 + 150;
+                cloud.style.width = `${w}px`;
+                cloud.style.height = `${w * 0.5}px`;
+                cloud.style.top = `${Math.random() * 80}%`;
+                cloud.style.left = `${Math.random() * 100}%`;
+                cloud.style.animationDelay = `${Math.random() * 100}s`;
+                cloud.style.animationDuration = `${Math.random() * 60 + 60}s`;
+                cloudContainer.appendChild(cloud);
+            }
+        }
+        createClouds();
+
+        function createBubble(thought, index) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.id = `bubble-${index}`;
+            
+            const size = Math.floor(Math.random() * 60) + 150; 
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+
+            // 随机生成彩虹色组合
+            const hues = [
+                Math.floor(Math.random() * 360), // 主色相
+                Math.floor(Math.random() * 360), // 次色相
+                Math.floor(Math.random() * 360)  // 辅助色相
+            ];
+            
+            bubble.style.boxShadow = `
+                inset 0 0 25px rgba(255, 255, 255, 0.7),
+                inset 20px 0 60px hsla(${hues[0]}, 90%, 75%, 0.5),
+                inset -20px 0 60px hsla(${hues[1]}, 90%, 75%, 0.5),
+                inset 0 20px 60px hsla(${hues[2]}, 90%, 75%, 0.5),
+                0 15px 35px rgba(0, 0, 0, 0.05)
+            `;
+
+            const maxX = window.innerWidth - size - 40;
+            const maxY = window.innerHeight - size - 160;
+            const left = Math.max(20, Math.floor(Math.random() * maxX));
+            const top = Math.max(60, Math.floor(Math.random() * maxY));
+            
+            bubble.style.left = `${left}px`;
+            bubble.style.top = `${top}px`;
+            bubble.style.animationDelay = `${Math.random() * -10}s`; // 随机起始位置
+
+            bubble.textContent = thought.text;
+
+            bubble.onclick = () => {
+                currentBubbleIndex = index;
+                originalThoughtDiv.textContent = `“${thought.text}”`;
+                replyModal.classList.remove('hidden');
+            };
+
+            bubbleContainer.appendChild(bubble);
+        }
+
+        function renderBubbles() {
+            bubbleContainer.innerHTML = '';
+            thoughts.forEach((t, i) => createBubble(t, i));
+        }
+
+        if (thoughts.length === 0) {
+            thoughts = [
+                { text: "感觉生活偶尔也需要按一下暂停键。" },
+                { text: "今天的风吹得很温柔，像被世界拥抱了。" },
+                { text: "虽然还在迷茫，但脚步没有停下。" },
+                { text: "发现了一家超好吃的甜品店！" },
+                { text: "希望每一个善良的人都能被温柔以待。" }
+            ];
+            localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
+        }
+        renderBubbles();
+
+        // 提交逻辑
+        document.getElementById('open-modal').onclick = () => modal.classList.remove('hidden');
+        document.getElementById('close-modal').onclick = () => modal.classList.add('hidden');
+        document.getElementById('submit-thought').onclick = () => {
+            const text = thoughtInput.value.trim();
+            if (text) {
+                const newThought = { text, timestamp: Date.now() };
+                thoughts.push(newThought);
+                localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
+                
+                // 更新个人统计：吹出的泡泡
+                userStats.bubbles++;
+                localStorage.setItem('thinking_more_stats', JSON.stringify(userStats));
+                updateStats();
+
+                renderBubbles();
+                thoughtInput.value = '';
+                modal.classList.add('hidden');
+            }
+        };
+
+        // 回复与实现逻辑
+        document.getElementById('close-reply-modal').onclick = () => replyModal.classList.add('hidden');
+        document.getElementById('submit-reply').onclick = () => {
+            const replyText = replyInput.value.trim();
+            if (currentBubbleIndex !== null && replyText) {
+                const bubbleEl = document.getElementById(`bubble-${currentBubbleIndex}`);
+                const originalText = thoughts[currentBubbleIndex].text;
+
+                if (bubbleEl) {
+                    // 1. 立即关闭弹窗，不等待
+                    replyModal.classList.add('hidden');
+                    
+                    // 2. 触发爆裂动画
+                    bubbleEl.classList.add('popping');
+                    
+                    // 3. 动画完成后再处理数据
+                    setTimeout(() => {
+                        // 保存回应消息
+                        replies.push({
+                            originalText,
+                            replyText,
+                            timestamp: Date.now()
+                        });
+                        localStorage.setItem('thinking_more_replies', JSON.stringify(replies));
+                        updateNotificationDot();
+
+                        bubbleEl.remove();
+                        thoughts.splice(currentBubbleIndex, 1);
+                        localStorage.setItem('thinking_more_thoughts', JSON.stringify(thoughts));
+                        
+                        replyInput.value = '';
+                        currentBubbleIndex = null;
+                    }, 400);
+                }
+            }
+        };
+
+        window.onresize = renderBubbles;
+        window.onclick = (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+            if (e.target === replyModal) replyModal.classList.add('hidden');
+            if (e.target === messageModal) messageModal.classList.add('hidden');
+            if (e.target === profileModal) profileModal.classList.add('hidden');
+            if (e.target === thanksModal) thanksModal.classList.add('hidden');
+        };
+    </script>
+</body>
+</html>
